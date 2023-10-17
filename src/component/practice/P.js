@@ -1,36 +1,54 @@
-import {Link, NavLink, useNavigate} from 'react-router-dom';
-import React, {Outlet, createContext, useState, useEffect, useCallback, useReducer, useRef,} from 'react';
-import axios from 'axios';
-import styled from 'styled-components';
+import React, { useReducer } from 'react';
 
-function ReducerOfComponent() {
+const initialState = {
+    items: [],
+    total: 0
+};
 
-    function reducer (action, state) {
-        switch (action.type) {
-
-            case 'increase' :
-                return {value1: state.value1 + 1, value2: (state.value1 + 1) * 2}
-
-            case 'decrease' :
-                return {value1: state.value1 - 1, value2: (state.value1 - 1) * 2}
-            default :
-                return state;
-        }
-
-
-
+function cartReducer(state, action) {
+    switch (action.type) {
+        case 'ADD_ITEM':
+            return {
+                items: [...state.items, action.item],
+                total: state.total + action.item.price
+            };
+        case 'REMOVE_ITEM':
+            const updatedItems = state.items.filter(item => item.id !== action.itemId);
+            const removedItem = state.items.find(item => item.id === action.itemId);
+            return {
+                items: updatedItems,
+                total: state.total - removedItem.price
+            };
+        default:
+            return state;
     }
+}
 
-    const [state, dispatch] = useReducer(reducer, {value1: 0, value2: 0})
+function ShoppingCart() {
+    const [state, dispatch] = useReducer(cartReducer, initialState);
 
     return (
         <div>
-            <div>{state.value1}</div>
-            <div>{state.value2}</div>
-            <button onClick={ ()=> dispatch({type:"increase"}) }>+1</button>
-            <button onClick={() =>dispatch({type:"decrease"})}>+1</button>
+            <h2>Shopping Cart</h2>
+            <ul>
+                {state.items.map(item => (
+                    <li key={item.id}>
+                        {item.name} - ${item.price}
+                        <button onClick={() => dispatch({ type: 'REMOVE_ITEM', itemId: item.id })}>
+                            Remove
+                        </button>
+                    </li>
+                ))}
+            </ul>
+            <p>Total: ${state.total}</p>
+            <button onClick={() => dispatch({
+                type: 'ADD_ITEM',
+                item: { id: Date.now(), name: 'Random Item', price: 10 }
+            })}>
+                Add Random Item
+            </button>
         </div>
     );
 }
 
-export default ReducerOfComponent;
+export default ShoppingCart;
